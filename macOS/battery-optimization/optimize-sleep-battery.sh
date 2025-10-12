@@ -22,16 +22,25 @@ echo "⚡ 배터리 전원 사용 시 설정 최적화 중..."
 sudo pmset -b powernap 0
 echo "  ✓ Power Nap 비활성화"
 
-# 대기 모드 설정 (3시간 후 hibernation으로 전환)
-sudo pmset -b standbydelay 10800
-echo "  ✓ Standby delay: 3시간"
+# Standby 모드 활성화 (일정 시간 후 deep sleep 진입)
+sudo pmset -b standby 1
+echo "  ✓ Standby 모드 활성화"
+
+# Standby delay 설정 (30분 후 deep sleep 진입)
+sudo pmset -b standbydelay 1800
+echo "  ✓ Standby delay: 30분 (빠른 깨어남 → 배터리 절약 자동 전환)"
+
+# 배터리 잔량 기준 설정 (50% 이상일 때만 standby 대기)
+sudo pmset -b highstandbythreshold 50
+echo "  ✓ High standby threshold: 50%"
 
 # hibernatemode 설정
 # 0 = 일반 sleep (RAM만 사용, 빠르지만 배터리 소모)
 # 3 = safe sleep (RAM + Disk, 안전하지만 느림)
 # 25 = hibernation (Disk만 사용, 배터리 소모 최소)
-sudo pmset -b hibernatemode 25
-echo "  ✓ Hibernate mode: 25 (디스크만 사용)"
+# Mode 3 + Standby: 처음엔 빠른 깨어남, 시간 경과 후 배터리 절약
+sudo pmset -b hibernatemode 3
+echo "  ✓ Hibernate mode: 3 (RAM + Disk 백업)"
 
 # TCP Keep Alive 비활성화 (네트워크 연결 유지 방지)
 sudo pmset -b tcpkeepalive 0
@@ -73,7 +82,8 @@ pmset -g
 
 echo ""
 echo "⚠️  참고사항:"
-echo "  - hibernatemode 25는 잠자기 진입/해제 시간이 늘어날 수 있습니다"
-echo "  - 빠른 재개가 필요한 경우 'sudo pmset -b hibernatemode 3'으로 변경하세요"
+echo "  - 잠자기 후 30분까지: 빠른 깨어남 (1-3초)"
+echo "  - 잠자기 후 30분 이후: 배터리 절약 모드 자동 진입 (깨어남 5-15초)"
+echo "  - 배터리 50% 미만 시: 즉시 deep sleep 진입"
 echo "  - 설정을 기본값으로 되돌리려면 restore-default-power-settings.sh를 실행하세요"
 echo ""

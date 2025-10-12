@@ -54,14 +54,22 @@ sudo ./optimize-sleep-battery.sh
 | 설정 | 변경 전 | 변경 후 | 효과 |
 |------|---------|---------|------|
 | powernap | 1 (ON) | 0 (OFF) | 백그라운드 활동 중지 |
-| hibernatemode | 3 | 25 | RAM 전력 차단, Disk만 사용 |
+| standby | - | 1 (ON) | 자동 deep sleep 활성화 |
+| standbydelay | - | 1800초 | 30분 후 deep sleep 진입 |
+| highstandbythreshold | - | 50% | 배터리 50% 이상 시만 대기 |
+| hibernatemode | 3 | 3 | RAM + Disk (standby와 함께 사용) |
 | tcpkeepalive | 1 (ON) | 0 (OFF) | 네트워크 깨어남 방지 |
 | proximitywake | 1 (ON) | 0 (OFF) | 근접 기기 깨어남 방지 |
 | ttyskeepawake | 1 (ON) | 0 (OFF) | 직렬 포트 깨어남 방지 |
-| standbydelay | - | 10800초 | 3시간 후 deep sleep |
+
+**2단계 절전 방식:**
+- **0-30분**: hibernatemode 3으로 빠른 깨어남 (1-3초)
+- **30분 이후**: 자동으로 standby 모드 진입, RAM 전력 차단 (깨어남 5-15초)
+- **배터리 50% 미만**: 즉시 deep sleep 진입하여 배터리 보호
 
 **주의사항:**
-- `hibernatemode 25`는 잠자기 진입/해제 시간이 3-10초 정도 늘어날 수 있습니다
+- 30분 이내 깨어남: 빠른 재개 가능
+- 30분 이후 깨어남: 배터리 절약 모드로 약간 느려짐
 - AC 전원 사용 시는 성능 우선 설정이 유지됩니다
 - 실행 전 현재 설정이 자동으로 백업됩니다 (`~/macos_power_settings_backup_*.txt`)
 
@@ -78,7 +86,13 @@ sudo ./restore-default-power-settings.sh
 
 최적화 적용 후:
 
-- **잠자기 중 배터리 소모**: 시간당 1-2% → **0.1-0.5%**
+**잠자기 0-30분 (빠른 재개 모드):**
+- **배터리 소모**: 시간당 약 0.5-1%
+- **깨어남 속도**: 1-3초 (빠름)
+
+**잠자기 30분 이후 (절약 모드):**
+- **배터리 소모**: 시간당 약 0.1-0.5%
+- **깨어남 속도**: 5-15초 (느림)
 - **8시간 잠자기 후 배터리 손실**: 8-15% → **1-4%**
 - **대기 시간**: 3-5일 → **1-2주**
 
@@ -151,9 +165,13 @@ sudo pmset -b hibernatemode 3
 ## 🔧 문제 해결
 
 ### Q: 최적화 후 잠자기 해제가 느려졌어요
-**A:** `hibernatemode 25`가 원인입니다. 다음 명령으로 변경:
+**A:** 30분 이상 잠자기 상태였다면 정상입니다 (standby 모드). 더 빠른 재개가 필요하면 standbydelay를 늘리세요:
 ```bash
-sudo pmset -b hibernatemode 3
+# 1시간 후 deep sleep
+sudo pmset -b standbydelay 3600
+
+# 또는 standby 비활성화 (항상 빠른 깨어남, 배터리 소모 증가)
+sudo pmset -b standby 0
 ```
 
 ### Q: 여전히 배터리가 많이 소모돼요
