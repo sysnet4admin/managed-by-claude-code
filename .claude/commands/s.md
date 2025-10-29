@@ -1,5 +1,6 @@
 ---
-description: Sonnet으로 균형잡힌 작업
+description: Balanced tasks with Sonnet 4.5
+release_date: Sep 29, 2025
 model: claude-sonnet-4-5-20250929
 ---
 
