@@ -83,3 +83,24 @@ env/
 tests
 test-results
 playwright-report
+
+# === Claude Code 관련 파일 ===
+# Git으로 공유: .claude/commands/, .claude/settings.json
+# 민감 정보만 제외
+
+# 개인 데이터 및 로그
+.claude/history.jsonl
+.claude/projects/
+.claude/debug/
+.claude/shell-snapshots/
+.claude/file-history/
+.claude/todos/
+.claude/session-env/
+.claude/statsig/
+.claude/.claude.json
+
+# 의존성
+.claude/local/
+
+# 플러그인 (API 키 포함 가능성 있으면 제외)
+.claude/plugins/
