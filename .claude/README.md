@@ -88,23 +88,26 @@ Ctx: 54.7k/200k (27%) | S: 114.4k/2.5M (5%) | W: 408.7k/30M (1%) | C: $0.30 | So
 1. **Session (5시간 window)**
    - 추정 budget: 2.5M tokens
    - 실제 Anthropic의 정확한 session budget 한도를 알 수 없음
-   - 마지막 5시간 동안의 모든 프로젝트 output token을 합산
+   - 5시간 동안의 모든 프로젝트 output token만 합산
+   - ⚠️ **부정확**: 실제로는 input + output + cache 모두 계산해야 하나 output만 계산 중
 
 2. **Weekly (7일 window)**
    - 추정 budget: 30M tokens
    - 실제 Anthropic의 정확한 weekly budget 한도를 알 수 없음
-   - 마지막 7일 동안의 모든 프로젝트 output token을 합산
+   - 7일 동안의 모든 프로젝트 output token만 합산
+   - ⚠️ **부정확**: 실제로는 input + output + cache 모두 계산해야 하나 output만 계산 중
 
 3. **Context (현재 대화)**
-   - Input tokens (cache_read + cache_creation + input)을 합산
-   - Output tokens는 포함되지 않음
-   - 실제로는 input + output 모두 사용하므로 실제 사용량보다 **낮게** 표시됨
+   - Input tokens (cache_read + cache_creation + input)만 합산
+   - ⚠️ **부정확**: 실제로는 input + output 모두 계산해야 하나 input만 계산 중
+   - 실제 사용량보다 **낮게** 표시됨
 
 4. **왜 정확하지 않은가?**
+   - **Session/Weekly**: Output만 계산 (input + cache 누락)
+   - **Context**: Input만 계산 (output 누락)
    - **캐시 할인**: Cache read tokens는 10% 비용이지만 100%로 계산됨
-   - **Output tokens**: Context 계산에서 제외되어 실제보다 낮게 표시
-   - **Budget 리셋 시간**: 정확한 리셋 시간을 알 수 없음 (표시는 "Resets 7pm (Asia/Seoul)" 등)
-   - **API 제약**: Claude Code의 `/usage` 명령은 interactive UI 전용이며 스크립트에서 실행 불가
+   - **Budget 리셋 시간**: 정확한 리셋 시간을 알 수 없음
+   - **API 제약**: `/usage` 명령은 interactive UI 전용이며 스크립트에서 실행 불가
    - **로컬 계산**: Transcript 파일 기반 계산이라 timezone/리셋 시간 불일치 가능
 
 5. **정확한 usage를 보려면**
@@ -121,9 +124,9 @@ Ctx: 54.7k/200k (27%) | S: 114.4k/2.5M (5%) | W: 408.7k/30M (1%) | C: $0.30 | So
 ## 참고
 
 이 설정은 로컬 transcript 기반 근사 계산입니다:
-- Context: Input tokens만 계산 (실제는 input + output)
-- Session/Weekly: Output tokens만 계산
-- 캐시 할인율이 반영되지 않음
-- `/usage`의 정확한 값과 차이가 있을 수 있습니다
+- **Context**: Input tokens만 계산 (실제는 input + output 모두 필요)
+- **Session/Weekly**: Output tokens만 계산 (실제는 input + output + cache 모두 필요)
+- **캐시 할인율**: 반영되지 않음 (cache read = 10% 비용이지만 100%로 계산)
+- **결과**: `/usage`의 정확한 값과 큰 차이가 있을 수 있습니다
 
 완전 자동화된 정확한 usage 표시는 Claude Code 자체에서 API를 제공해야 가능합니다.
