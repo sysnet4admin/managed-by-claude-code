@@ -81,38 +81,42 @@ Ctx: 54.7k/200k (27%) | S: 114.4k/2.5M (5%) | W: 408.7k/30M (1%) | C: $0.30 | So
 - Weekly: 30M tokens (추정)
 - 실제 한도와 다를 수 있음
 
-### Usage 계산의 부정확성
+### 계산 방식 상세
 
-현재 구현에서는 모든 usage를 **근사치**로 계산합니다:
+#### 1. Context (현재 대화) - ✅ 정확
+**계산 방식:**
+- PostToolUse hook으로 매 도구 실행마다 자동 업데이트
+- `cache_read_input_tokens + cache_creation_input_tokens + input_tokens`
+- 가장 최근 assistant 메시지의 usage 데이터 사용
 
-1. **Session (5시간 window)**
-   - 추정 budget: 2.5M tokens
-   - 실제 Anthropic의 정확한 session budget 한도를 알 수 없음
-   - 5시간 동안의 모든 프로젝트 output token만 합산
-   - ⚠️ **부정확**: 실제로는 input + output + cache 모두 계산해야 하나 output만 계산 중
+**정확도:**
+- ✅ Claude Code가 보고하는 context window 사용량과 동일
+- ✅ Auto-compress 시점 예측 가능 (200k 기준 22.5% 버퍼)
 
-2. **Weekly (7일 window)**
-   - 추정 budget: 30M tokens
-   - 실제 Anthropic의 정확한 weekly budget 한도를 알 수 없음
-   - 7일 동안의 모든 프로젝트 output token만 합산
-   - ⚠️ **부정확**: 실제로는 input + output + cache 모두 계산해야 하나 output만 계산 중
+#### 2. Session (5시간 window) - ⚠️ 부정확
+**계산 방식:**
+- 5시간 동안의 모든 프로젝트에서 `output_tokens`만 합산
+- 추정 budget: 2.5M tokens (실제 한도는 Anthropic 비공개)
 
-3. **Context (현재 대화)**
-   - Input tokens (cache_read + cache_creation + input)만 합산
-   - ⚠️ **부정확**: 실제로는 input + output 모두 계산해야 하나 input만 계산 중
-   - 실제 사용량보다 **낮게** 표시됨
+**부정확한 이유:**
+- ⚠️ Input tokens 누락 (실제로는 input + output 모두 계산됨)
+- ⚠️ Cache 비용 미반영 (cache_read는 10% 비용, cache_creation은 별도 계산)
+- ⚠️ 정확한 budget 한도 알 수 없음
 
-4. **왜 정확하지 않은가?**
-   - **Session/Weekly**: Output만 계산 (input + cache 누락)
-   - **Context**: Input만 계산 (output 누락)
-   - **캐시 할인**: Cache read tokens는 10% 비용이지만 100%로 계산됨
-   - **Budget 리셋 시간**: 정확한 리셋 시간을 알 수 없음
-   - **API 제약**: `/usage` 명령은 interactive UI 전용이며 스크립트에서 실행 불가
-   - **로컬 계산**: Transcript 파일 기반 계산이라 timezone/리셋 시간 불일치 가능
+#### 3. Weekly (7일 window) - ⚠️ 부정확
+**계산 방식:**
+- 7일 동안의 모든 프로젝트에서 `output_tokens`만 합산
+- 추정 budget: 30M tokens (실제 한도는 Anthropic 비공개)
 
-5. **정확한 usage를 보려면**
-   - Claude Code에서 `/usage` 명령을 직접 실행하세요
-   - 자동화된 정확한 표시는 현재 기술적으로 불가능
+**부정확한 이유:**
+- ⚠️ Input tokens 누락 (실제로는 input + output 모두 계산됨)
+- ⚠️ Cache 비용 미반영
+- ⚠️ 정확한 budget 한도 알 수 없음
+- ⚠️ Budget 리셋 시간 정확히 알 수 없음 (timezone 불일치 가능)
+
+#### 정확한 usage 확인 방법
+- Claude Code에서 `/usage` 명령 실행
+- Session/Weekly 사용량 퍼센트 확인 가능 (정확한 토큰 수는 비공개)
 
 ## 캐시 파일
 
