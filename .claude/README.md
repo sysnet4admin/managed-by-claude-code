@@ -93,30 +93,32 @@ Ctx: 54.7k/200k (27%) | S: 114.4k/2.5M (5%) | W: 408.7k/30M (1%) | C: $0.30 | So
 - ✅ Claude Code가 보고하는 context window 사용량과 동일
 - ✅ Auto-compress 시점 예측 가능 (200k 기준 22.5% 버퍼)
 
-#### 2. Session (5시간 window) - ⚠️ 부정확
+#### 2. Session (5시간 window) - ⚠️ 참고용 추정치
 **계산 방식:**
 - 5시간 동안의 모든 프로젝트에서 `output_tokens`만 합산
 - 추정 budget: 2.5M tokens (실제 한도는 Anthropic 비공개)
 
-**부정확한 이유:**
-- ⚠️ Input tokens 누락 (실제로는 input + output 모두 계산됨)
-- ⚠️ Cache 비용 미반영 (cache_read는 10% 비용, cache_creation은 별도 계산)
-- ⚠️ 정확한 budget 한도 알 수 없음
+**한계:**
+- ⚠️ **Anthropic의 정확한 계산 방식을 알 수 없음** (output만? input+output? cache 가중치?)
+- ⚠️ Output tokens만 계산하는 것으로 **추정**하여 구현
+- ⚠️ 정확한 budget 한도를 알 수 없음 (2.5M은 역산한 추정치)
+- ⚠️ Budget 리셋 시간 정확히 알 수 없음 (timezone 불일치 가능)
 
-#### 3. Weekly (7일 window) - ⚠️ 부정확
+#### 3. Weekly (7일 window) - ⚠️ 참고용 추정치
 **계산 방식:**
 - 7일 동안의 모든 프로젝트에서 `output_tokens`만 합산
 - 추정 budget: 30M tokens (실제 한도는 Anthropic 비공개)
 
-**부정확한 이유:**
-- ⚠️ Input tokens 누락 (실제로는 input + output 모두 계산됨)
-- ⚠️ Cache 비용 미반영
-- ⚠️ 정확한 budget 한도 알 수 없음
+**한계:**
+- ⚠️ **Anthropic의 정확한 계산 방식을 알 수 없음** (output만? input+output? cache 가중치?)
+- ⚠️ Output tokens만 계산하는 것으로 **추정**하여 구현
+- ⚠️ 정확한 budget 한도를 알 수 없음 (30M은 역산한 추정치)
 - ⚠️ Budget 리셋 시간 정확히 알 수 없음 (timezone 불일치 가능)
 
 #### 정확한 usage 확인 방법
-- Claude Code에서 `/usage` 명령 실행
-- Session/Weekly 사용량 퍼센트 확인 가능 (정확한 토큰 수는 비공개)
+- **Claude Code에서 `/usage` 명령 실행** (이것만이 정확한 방법)
+- Session/Weekly 사용량 퍼센트 확인 가능
+- Statusline은 어디까지나 **참고용 추정치**일 뿐
 
 ## 캐시 파일
 
