@@ -7,6 +7,7 @@
 ### 스크립트
 - `statusline-command.sh` - Statusline 표시 로직 (context, session, weekly usage 계산)
 - `update-context-cache.sh` - PostToolUse hook으로 실행되어 context token 캐시 업데이트
+- `clear-cache-on-refresh.sh` - UserPromptSubmit hook으로 `/refresh` 입력 시 캐시 삭제
 
 ### 커맨드
 - `commands/refresh.md` - `/refresh` 커맨드 정의
@@ -43,6 +44,16 @@
           {
             "type": "command",
             "command": "/bin/bash /Users/YOUR_USERNAME/.claude/update-context-cache.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/bash /Users/YOUR_USERNAME/.claude/clear-cache-on-refresh.sh"
           }
         ]
       }
