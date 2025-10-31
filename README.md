@@ -6,6 +6,10 @@ Claude를 활용하여 작성한 macOS 및 시스템 관리 스크립트 모음�
 
 ```
 managed-by-claude-code/
+├── .claude/                      # Claude Code 설정
+│   ├── statusline-command.sh     # Statusline 표시 스크립트
+│   ├── update-context-cache.sh   # Context 캐시 업데이트 hook
+│   └── commands/                 # 커스텀 명령어
 ├── macOS/
 │   ├── battery-optimization/    # 배터리 최적화 도구
 │   └── homebrew/                 # Homebrew 패키지 관리 도구
@@ -14,6 +18,17 @@ managed-by-claude-code/
 ```
 
 ## 🛠️ 도구 목록
+
+### Claude Code 설정
+
+#### [Statusline Configuration](.claude/)
+Claude Code의 커스텀 statusline 설정
+
+**주요 기능:**
+- Context window, Session, Weekly usage 실시간 표시
+- Token 기반 사용량 계산
+- PostToolUse hook으로 자동 업데이트
+- `/refresh` 커맨드 지원
 
 ### macOS
 
@@ -95,6 +110,10 @@ cd scripts/http-health-check
 - 각 도구의 README를 먼저 읽어보세요
 
 ## 📝 변경 이력
+
+### 2025-10-31
+- Claude Code Statusline 설정 추가
+- 메인 README에 Claude Code 설정 섹션 추가
 
 ### 2025-10-28
 - Homebrew 패키지 관리 도구 추가
