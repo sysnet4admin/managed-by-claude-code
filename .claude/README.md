@@ -123,10 +123,12 @@ Ctx: 54.7k/200k (27%) | S: 114.4k/2.5M (5%) | W: 408.7k/30M (1%) | C: $0.30 | So
 
 ## 참고
 
-이 설정은 로컬 transcript 기반 근사 계산입니다:
-- **Context**: Input tokens만 계산 (실제는 input + output 모두 필요)
-- **Session/Weekly**: Output tokens만 계산 (실제는 input + output + cache 모두 필요)
-- **캐시 할인율**: 반영되지 않음 (cache read = 10% 비용이지만 100%로 계산)
-- **결과**: `/usage`의 정확한 값과 큰 차이가 있을 수 있습니다
+**이 statusline은 참고용 근사치입니다:**
+- 로컬 transcript 파일 기반 계산으로 실제 usage와 차이가 있습니다
+- 정확한 사용량은 `/usage` 명령으로 확인하세요
+- 완전 자동화된 정확한 표시는 Claude Code에서 API를 제공해야 가능합니다
 
-완전 자동화된 정확한 usage 표시는 Claude Code 자체에서 API를 제공해야 가능합니다.
+**용도:**
+- Context window 사용량 모니터링 (auto-compress 시점 예측)
+- Session/Weekly 사용 패턴 추적
+- 대략적인 비용 추정
