@@ -120,12 +120,21 @@ Ctx: 54.7k/200k (27%) | S: 114.4k/2.5M (5%) | W: 408.7k/30M (1%) | C: $0.30 | So
 - Session/Weekly 사용량 퍼센트 확인 가능
 - Statusline은 어디까지나 **참고용 추정치**일 뿐
 
+## 멀티 세션 지원
+
+**세션별 독립 캐시:**
+- 각 Claude Code 세션은 독립적인 캐시 파일을 사용합니다
+- 여러 프로젝트를 동시에 열어도 각각의 context 사용량이 정확히 표시됩니다
+- Session ID를 기반으로 캐시 파일이 자동으로 분리됩니다
+
 ## 캐시 파일
 
-다음 캐시 파일들이 자동 생성됩니다:
-- `~/.claude/.statusline_cache` - Statusline 출력 캐시 (60초 TTL)
-- `~/.claude/.context_tokens_cache` - Context token 캐시
-- `~/.claude/.statusline_input_debug.json` - 디버그용 JSON
+다음 캐시 파일들이 세션별로 자동 생성됩니다:
+- `~/.claude/.statusline_cache_{session_id}` - Statusline 출력 캐시 (60초 TTL)
+- `~/.claude/.context_tokens_cache_{session_id}` - Context token 캐시
+- `~/.claude/.statusline_input_debug_{session_id}.json` - 디버그용 JSON
+
+**세션 ID**: 각 Claude Code 세션마다 고유한 UUID가 부여됩니다
 
 ## 참고
 

@@ -3,17 +3,19 @@
 # Hook script to extract context token count and save to cache
 # This runs after every tool use
 
-CONTEXT_CACHE="$HOME/.claude/.context_tokens_cache"
-
 # Read hook input JSON from stdin
 input=$(cat)
 
-# Extract transcript path from the hook input
+# Extract session_id and transcript path from the hook input
+session_id=$(echo "$input" | jq -r '.session_id // empty')
 transcript=$(echo "$input" | jq -r '.transcript_path // empty')
 
-if [ -z "$transcript" ] || [ ! -f "$transcript" ]; then
+if [ -z "$transcript" ] || [ ! -f "$transcript" ] || [ -z "$session_id" ]; then
     exit 0
 fi
+
+# Use session-specific cache file
+CONTEXT_CACHE="$HOME/.claude/.context_tokens_cache_${session_id}"
 
 # Get the most recent assistant message's usage data
 # Calculate total input tokens: cache_read + cache_creation + input

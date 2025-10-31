@@ -3,7 +3,12 @@
 # Claude Code Status Line - Display usage information from /status command
 # Updates every 60 seconds (1 minute) with cached data
 
-CACHE_FILE="$HOME/.claude/.statusline_cache"
+# Read JSON input from stdin first to get session_id
+input=$(cat)
+session_id=$(echo "$input" | jq -r '.session_id // empty')
+
+# Use session-specific cache file
+CACHE_FILE="$HOME/.claude/.statusline_cache_${session_id}"
 CACHE_TTL=60  # Cache time-to-live in seconds (60 = 1 minute)
 
 # Budget limits (calibrated based on actual usage data)
@@ -30,11 +35,8 @@ format_k() {
     fi
 }
 
-# Read JSON input from stdin
-input=$(cat)
-
-# Debug: Save JSON to file to see what fields are available
-echo "$input" > "$HOME/.claude/.statusline_input_debug.json"
+# Debug: Save JSON to file to see what fields are available (session-specific)
+echo "$input" > "$HOME/.claude/.statusline_input_debug_${session_id}.json"
 
 # Function to get cache age in seconds
 get_cache_age() {
@@ -81,8 +83,8 @@ result=""
 current_session_tokens=0
 context_tokens=0
 
-# Try to read context from hook-generated cache first
-CONTEXT_CACHE="$HOME/.claude/.context_tokens_cache"
+# Try to read context from session-specific hook-generated cache first
+CONTEXT_CACHE="$HOME/.claude/.context_tokens_cache_${session_id}"
 if [ -f "$CONTEXT_CACHE" ]; then
     context_tokens=$(cat "$CONTEXT_CACHE" 2>/dev/null || echo 0)
     if [ -z "$context_tokens" ] || [ "$context_tokens" = "null" ]; then
