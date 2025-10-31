@@ -1,6 +1,6 @@
 # Claude Code Statusline Configuration
 
-이 디렉토리는 Claude Code의 커스텀 statusline 설정 파일들의 백업입니다.
+이 디렉터리는 Claude Code의 커스텀 statusline 설정 파일들의 백업입니다.
 
 ## 파일 목록
 
@@ -17,10 +17,10 @@
 
 이유:
 - `settings.json`의 `statusLine.command`와 `hooks`는 절대 경로가 필요합니다
-- Claude Code가 다양한 작업 디렉토리에서 실행되기 때문에 상대 경로는 작동하지 않습니다
+- Claude Code가 다양한 작업 디렉터리에서 실행되기 때문에 상대 경로는 작동하지 않습니다
 - 스크립트 내부에서 `~/.claude/projects/` 경로를 직접 참조합니다
 
-실제 사용 위치: `~/.claude/` (홈 디렉토리)
+실제 사용 위치: `~/.claude/` (홈 디렉터리)
 
 ## 설정 방법
 
@@ -58,7 +58,7 @@
 - **W**: Weekly 사용량 (7일 윈도우)
 - **C**: 비용 (현재 세션)
 - **Model**: 현재 사용 중인 모델
-- **디렉토리**: 현재 작업 디렉토리 (basename)
+- **디렉터리**: 현재 작업 디렉터리 (basename)
 
 예시:
 ```

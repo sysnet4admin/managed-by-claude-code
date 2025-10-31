@@ -112,7 +112,7 @@ qemu,2025-01-13,670M,거의 없음,낮음,True
 git clone https://github.com/sysnet4admin/managed-by-claude-code.git
 cd managed-by-claude-code
 
-# 2. 디렉토리 이동
+# 2. 디렉터리 이동
 cd macOS/homebrew
 
 # 3. 패키지 분석
@@ -180,7 +180,7 @@ brew upgrade
 
 ### 사용 빈도 계산 방법
 
-1. 패키지의 `bin` 디렉토리에 있는 실행 파일 확인
+1. 패키지의 `bin` 디렉터리에 있는 실행 파일 확인
 2. 파일의 최근 접근 시간(access time) 확인
 3. 현재 시간과 비교하여 빈도 계산
 4. bin 파일이 없으면 설치 후 경과 시간으로 추정
