@@ -128,16 +128,9 @@ Ctx: 54.7k/200k (27%) | S: 114.4k/2.5M (5%) | W: 408.7k/30M (1%) | C: $0.30 | So
 
 ### TODO: Session/Weekly 계산 개선 필요
 
-**현재 상태:**
-- Output tokens만 사용하는 추정 방식
-- Anthropic의 실제 계산 방식 미파악
+⚠️ **현재 추정 방식 사용 중** - Anthropic의 정확한 계산 방식을 모르기 때문에 개선이 필요합니다.
 
-**향후 작업:**
-- Anthropic 문서나 API에서 정확한 계산 방식 확인
-- Input + output + cache 비용 정확히 반영
-- Cache read (10%) vs cache_creation (25%) 비용 적용
-- 정확한 budget 한도 파악
-- Budget 리셋 시간 정확화
+더 정확한 정보가 필요하면 향후 조사가 필요합니다.
 
 #### 정확한 usage 확인 방법
 - **Claude Code에서 `/usage` 명령 실행** (이것만이 정확한 방법)
