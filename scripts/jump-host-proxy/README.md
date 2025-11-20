@@ -19,9 +19,9 @@ Bastion/Jump Host를 통해 private 리소스에 SSH 터널로 접속하기 위�
 │  │  (127.0.0.1)     │                                                   │
 │  │                  │                                                   │
 │  │  kubectl ────────┼───► localhost:8443                                │
-│  │                  │         │                                         │
-│  │                  │         │ (kubeconfig-local)                      │
-│  └──────────────────┘         │                                         │
+│  │                  │          │                                        │
+│  │                  │          │ (kubeconfig-local)                     │
+│  └──────────────────┘          │                                        │
 │                                │                                        │
 │         ┌──────────────────────┘                                        │
 │         │  SSH Tunnel (Port Forwarding)                                 │
