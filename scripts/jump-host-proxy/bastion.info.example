@@ -1,0 +1,3 @@
+BASTION_USER="your-username"
+BASTION_HOST="your-bastion-ip-or-hostname"
+LOCAL_PORT="8443"  # 선택사항, 기본값: 8443

@@ -1,0 +1,23 @@
+# SSH 키 파일
+*.pem
+*.key
+
+# Bastion 정보
+bastion.info
+
+# Kubernetes 설정
+kubeconfig
+kubeconfig-local
+
+# 터널 PID 파일
+tunnel.pid
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
