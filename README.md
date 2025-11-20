@@ -15,7 +15,7 @@ managed-by-claude-code/
 │   └── homebrew/                 # Homebrew 패키지 관리 도구
 └── scripts/
     ├── http-health-check/        # HTTP 헬스체크 도구
-    └── jump-host-proxy/          # AKS SSH 터널 관리 도구
+    └── jump-host-proxy/          # SSH Jump Host 프록시 도구
 ```
 
 ## 🛠️ 도구 목록
@@ -63,20 +63,21 @@ Homebrew 패키지 정보를 분석하고 관리하는 도구
 #### 1. [HTTP Health Check](scripts/http-health-check/)
 HTTP 엔드포인트 상태를 모니터링하는 도구
 
-#### 2. [AKS SSH Tunnel Manager](scripts/jump-host-proxy/)
-Azure Kubernetes Service (AKS) Private Cluster에 SSH 터널을 통해 접속하는 도구
+#### 2. [Jump Host Proxy](scripts/jump-host-proxy/)
+Bastion/Jump Host를 통해 private 리소스에 SSH 터널로 접속하는 범용 도구
 
 **주요 기능:**
-- Bastion 호스트를 통한 자동 SSH 터널 생성
+- Bastion 호스트를 통한 자동 SSH 터널 생성/관리
 - 동적 kubeconfig 생성 (localhost 포워딩)
 - SSH 키 자동 선택 및 관리
 - 터널 상태 관리 (PID 기반)
 - source 실행 시 KUBECONFIG 자동 설정/원복
 
-**활용:**
-- Private AKS 클러스터 로컬 접근
-- kubectl 명령 실행
-- 개발 환경에서 안전한 클러스터 관리
+**활용 사례:**
+- Private Kubernetes 클러스터 접근 (AKS, EKS, GKE 등)
+- Private 데이터베이스 접근
+- 내부 네트워크 서비스 접근
+- 개발/운영 환경 안전한 관리
 
 ## 🚀 빠른 시작
 
@@ -106,19 +107,19 @@ cd scripts/http-health-check
 ./check-response.sh https://example.com
 ```
 
-### AKS SSH Tunnel Manager
+### Jump Host Proxy
 ```bash
 cd scripts/jump-host-proxy
 # 설정 파일 생성
 cp bastion.info.example bastion.info
 # bastion.info 편집 (사용자 정보, 호스트 정보 입력)
-# kubeconfig 파일 배치
+# kubeconfig 파일 배치 (Kubernetes 사용 시)
 # .pem SSH 키 배치
 
 # 터널 시작 (KUBECONFIG 자동 설정)
 source ./start-tunnel.sh
 
-# kubectl 사용
+# kubectl 사용 (Kubernetes 클러스터 접근 시)
 kubectl get nodes
 
 # 터널 종료 (KUBECONFIG 자동 원복)
@@ -131,7 +132,7 @@ source ./stop-tunnel.sh
 - Bash shell
 - Homebrew (homebrew 도구 사용 시)
 - Python 3.x (일부 스크립트)
-- kubectl (AKS SSH Tunnel Manager 사용 시)
+- kubectl (Jump Host Proxy에서 Kubernetes 접근 시)
 
 ## 💡 사용 팁
 
@@ -148,9 +149,9 @@ source ./stop-tunnel.sh
 ## 📝 변경 이력
 
 ### 2025-11-20
-- AKS SSH Tunnel Manager 추가
-- Private AKS 클러스터 접근을 위한 SSH 터널 자동화 도구
-- 메인 README에 jump-host-proxy 섹션 추가
+- Jump Host Proxy 추가
+- Bastion/Jump Host를 통한 SSH 터널 자동화 범용 도구
+- Private 리소스(Kubernetes, DB 등) 접근 지원
 
 ### 2025-10-31
 - Claude Code Statusline 설정 추가

@@ -1,6 +1,91 @@
-# AKS SSH Tunnel Manager
+# Jump Host Proxy
 
-Azure Kubernetes Service (AKS) Private Cluster에 SSH 터널을 통해 접속하기 위한 스크립트입니다.
+Bastion/Jump Host를 통해 private 리소스에 SSH 터널로 접속하기 위한 범용 스크립트입니다.
+
+**지원 환경:**
+- Private Kubernetes 클러스터 (AKS, EKS, GKE 등)
+- Private 데이터베이스 서버
+- 내부 네트워크 서비스
+- 기타 SSH 터널이 필요한 모든 private 리소스
+
+## 아키텍처
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          로컬 개발 환경                                    │
+│                                                                           │
+│  ┌──────────────────┐                                                    │
+│  │  로컬 머신        │                                                    │
+│  │  (127.0.0.1)     │                                                    │
+│  │                  │                                                    │
+│  │  kubectl ────────┼───► localhost:8443                                │
+│  │                  │         │                                          │
+│  │                  │         │ (kubeconfig-local)                       │
+│  └──────────────────┘         │                                          │
+│                                │                                          │
+│         ┌──────────────────────┘                                          │
+│         │  SSH Tunnel (Port Forwarding)                                  │
+│         │  start-tunnel.sh                                               │
+│         ▼                                                                 │
+└─────────┼─────────────────────────────────────────────────────────────────┘
+          │
+          │ SSH Connection
+          │ (ssh -L 8443:REMOTE_ENDPOINT:443)
+          │
+          ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                       퍼블릭 네트워크                                      │
+│                                                                           │
+│  ┌──────────────────────────────────────────────────────────────┐       │
+│  │  Bastion / Jump Host                                          │       │
+│  │  (Public IP)                                                  │       │
+│  │                                                                │       │
+│  │  • SSH 키 기반 인증                                            │       │
+│  │  • 포트 포워딩 중계                                            │       │
+│  │  • 보안 게이트웨이 역할                                        │       │
+│  └──────────────────────────────────────────────────────────────┘       │
+│                                │                                          │
+└────────────────────────────────┼──────────────────────────────────────────┘
+                                 │
+                                 │ Private Network Access
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    프라이빗 네트워크 (VPC/VNet)                           │
+│                                                                           │
+│  ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐       │
+│  │   AKS Cluster   │   │   EKS Cluster   │   │   GKE Cluster   │       │
+│  │   (Private)     │   │   (Private)     │   │   (Private)     │       │
+│  │                 │   │                 │   │                 │       │
+│  │  API Server     │   │  API Server     │   │  API Server     │       │
+│  │  (Private IP)   │   │  (Private IP)   │   │  (Private IP)   │       │
+│  └─────────────────┘   └─────────────────┘   └─────────────────┘       │
+│                                                                           │
+│  ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐       │
+│  │   Database      │   │   Internal      │   │   Other         │       │
+│  │   (Private)     │   │   Services      │   │   Resources     │       │
+│  └─────────────────┘   └─────────────────┘   └─────────────────┘       │
+│                                                                           │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 동작 원리
+
+1. **SSH 터널 생성**
+   - 로컬 머신에서 Bastion Host로 SSH 연결
+   - 로컬 포트(8443)를 원격 리소스(Private Kubernetes API Server)로 포워딩
+
+2. **kubeconfig 변환** (Kubernetes 사용 시)
+   - 원본 kubeconfig의 Private IP를 localhost:8443으로 변경
+   - TLS 검증 우회 설정 추가 (insecure-skip-tls-verify)
+
+3. **로컬 접근**
+   - kubectl 명령이 localhost:8443으로 요청
+   - SSH 터널이 자동으로 Bastion Host를 통해 Private 리소스로 전달
+
+4. **투명한 프록시**
+   - 사용자는 마치 로컬에서 직접 접근하는 것처럼 사용
+   - 실제로는 SSH 터널을 통해 안전하게 접근
 
 ## 필수 파일 설정
 
@@ -22,17 +107,25 @@ BASTION_HOST="your-bastion-ip-or-hostname"
 LOCAL_PORT="8443"  # 선택사항, 기본값: 8443
 ```
 
-### 3. Kubernetes 설정 (kubeconfig)
-AKS 클러스터의 kubeconfig 파일을 `kubeconfig` 이름으로 저장하세요.
+### 3. Kubernetes 설정 (kubeconfig) - 선택사항
+Kubernetes 클러스터에 접근할 경우, kubeconfig 파일을 `kubeconfig` 이름으로 저장하세요.
 
-**Azure Portal에서 다운로드:**
-1. AKS 클러스터 → Overview → Connect
-2. kubeconfig 다운로드
-3. 현재 디렉토리에 `kubeconfig` 이름으로 저장
+**클라우드별 다운로드 방법:**
 
-**또는 Azure CLI 사용:**
+**Azure (AKS):**
 ```bash
 az aks get-credentials --resource-group <rg-name> --name <cluster-name> --file ./kubeconfig
+```
+
+**AWS (EKS):**
+```bash
+aws eks update-kubeconfig --name <cluster-name> --kubeconfig ./kubeconfig
+```
+
+**GCP (GKE):**
+```bash
+gcloud container clusters get-credentials <cluster-name> --region <region> --project <project-id>
+# ~/.kube/config에서 ./kubeconfig로 복사
 ```
 
 ## 사용 방법
@@ -69,9 +162,10 @@ kubectl get pods -A
 ## 주요 기능
 
 - **자동 SSH 키 선택**: .pem 파일 자동 감지 및 선택
-- **동적 kubeconfig 생성**: 원본 kubeconfig에서 로컬 접속용 설정 자동 생성
-- **환경 변수 자동 설정**: source로 실행 시 KUBECONFIG 자동 설정/원복
+- **동적 kubeconfig 생성**: 원본 kubeconfig에서 로컬 접속용 설정 자동 생성 (Kubernetes 사용 시)
+- **환경 변수 자동 설정**: source로 실행 시 KUBECONFIG 자동 설정/원복 (Kubernetes 사용 시)
 - **터널 상태 관리**: 이중 실행 방지 및 PID 기반 프로세스 관리
+- **범용성**: Kubernetes뿐만 아니라 모든 private 리소스 접근 가능
 
 ## 파일 구조
 
