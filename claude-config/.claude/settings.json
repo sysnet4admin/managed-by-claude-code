@@ -1,0 +1,11 @@
+{
+  "statusLine": {
+    "type": "command",
+    "command": "/bin/bash ~/.claude/statusline-command.sh"
+  },
+  "spinnerTipsEnabled": true,
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  }
+}

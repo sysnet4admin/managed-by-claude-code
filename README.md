@@ -6,10 +6,12 @@ Claude를 활용하여 작성한 macOS 및 시스템 관리 스크립트 모음�
 
 ```
 managed-by-claude-code/
-├── .claude/                      # Claude Code 설정
-│   ├── statusline-command.sh     # Statusline 표시 스크립트
-│   ├── update-context-cache.sh   # Context 캐시 업데이트 hook
-│   └── commands/                 # 커스텀 명령어
+├── .claude/                      # 저장소별 Claude Code 설정
+│   └── settings.json             # 저장소 설정 (attribution 등)
+├── claude-config/                # 글로벌 Claude Code 설정 (symlink용)
+│   ├── .claude/                  # 설정 파일들
+│   ├── install.sh                # 설치 스크립트
+│   └── README.md                 # 사용법
 ├── macOS/
 │   ├── battery-optimization/    # 배터리 최적화 도구
 │   └── homebrew/                 # Homebrew 패키지 관리 도구
@@ -22,14 +24,19 @@ managed-by-claude-code/
 
 ### Claude Code 설정
 
-#### [Statusline Configuration](.claude/)
-Claude Code의 커스텀 statusline 설정
+#### [글로벌 설정](claude-config/)
+여러 노트북에서 동일한 Claude Code 설정을 공유하기 위한 설정 파일
 
 **주요 기능:**
-- Context window, Session, Weekly usage 실시간 표시
-- Token 기반 사용량 계산
-- PostToolUse hook으로 자동 업데이트
-- `/refresh` 커맨드 지원
+- 커스텀 statusline (모델명, 사용량 게이지, k8s 컨텍스트, 경로)
+- 슬래시 명령어 (`/o`, `/s`, `/h` - 모델 전환)
+- Attribution 설정 (글로벌: 비활성화)
+
+#### [저장소별 설정](.claude/)
+이 저장소 전용 Claude Code 설정
+
+**주요 기능:**
+- Attribution 활성화 (Claude가 contributor로 표시됨)
 
 ### macOS
 
@@ -86,6 +93,14 @@ Bastion/Jump Host를 통해 private 리소스에 SSH 터널로 접속하는 범�
 git clone https://github.com/sysnet4admin/managed-by-claude-code.git
 cd managed-by-claude-code
 ```
+
+### Claude Code 글로벌 설정 설치
+여러 노트북에서 동일한 Claude Code 설정을 사용하려면:
+```bash
+cd claude-config
+./install.sh
+```
+자세한 내용은 [claude-config/README.md](claude-config/README.md) 참고
 
 ### 배터리 최적화
 ```bash
