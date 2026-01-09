@@ -43,9 +43,9 @@ create_gauge() {
 
     # Determine color based on percentage
     local color
-    if [ $pct -lt 60 ]; then
+    if [ $pct -lt 50 ]; then
         color="\033[32m"  # Green
-    elif [ $pct -lt 80 ]; then
+    elif [ $pct -lt 70 ]; then
         color="\033[33m"  # Yellow
     else
         color="\033[31m"  # Red
@@ -141,9 +141,9 @@ abbreviated=$(abbreviate_path "$cwd")
 printf "%s | " "$short_model"
 create_gauge $pct
 
-# Add k8s context if available
+# Add k8s context if available (with Kubernetes logo)
 if [ -n "$k8s_context" ]; then
-    printf " | %s | %s\n" "$k8s_context" "$abbreviated"
+    printf " | ☸ %s | %s\n" "$k8s_context" "$abbreviated"
 else
     printf " | %s\n" "$abbreviated"
 fi

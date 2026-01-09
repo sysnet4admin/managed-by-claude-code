@@ -1,7 +1,11 @@
 {
-  "alwaysThinkingEnabled": false,
+  "statusLine": {
+    "type": "command",
+    "command": "/bin/bash ~/.claude/statusline-command.sh"
+  },
+  "spinnerTipsEnabled": true,
   "attribution": {
-    "commit": "none",
-    "pr": "none"
+    "commit": "",
+    "pr": ""
   }
 }
