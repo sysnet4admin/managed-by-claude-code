@@ -5,7 +5,7 @@
   },
   "spinnerTipsEnabled": true,
   "attribution": {
-    "commit": "",
-    "pr": ""
+    "commit": "🤖 Generated with Claude Code\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+    "pr": "🤖 Generated with Claude Code"
   }
 }
