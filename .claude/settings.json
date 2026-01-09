@@ -1,3 +1,7 @@
 {
-  "alwaysThinkingEnabled": false
+  "alwaysThinkingEnabled": false,
+  "attribution": {
+    "commit": "co-authored",
+    "pr": "co-authored"
+  }
 }
