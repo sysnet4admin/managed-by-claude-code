@@ -7,11 +7,12 @@
 input=$(cat)
 
 # Helper function to abbreviate path
-# Converts /Users/user/11.Github/_Lecture_k8s_starter.kit/ch2
-# to 11.Github/.../ch2
+# Priority: current folder (last) must always be fully visible
+# Format: .../<current_folder> or <short_first>/.../<current_folder>
 abbreviate_path() {
     local path=$1
     local home=$HOME
+    local max_first_len=8  # Max length for first component
 
     # Remove home directory prefix if present
     path=${path#$home/}
@@ -20,14 +21,28 @@ abbreviate_path() {
     IFS='/' read -ra parts <<< "$path"
     local len=${#parts[@]}
 
-    # If 3 or fewer components, show all
-    if [ $len -le 3 ]; then
+    # If only 1 component, show as is
+    if [ $len -le 1 ]; then
         echo "$path"
         return
     fi
 
-    # Show first component, ..., and last component
-    echo "${parts[0]}/.../${parts[-1]}"
+    # If 2 components, show both
+    if [ $len -eq 2 ]; then
+        echo "$path"
+        return
+    fi
+
+    # For 3+ components: abbreviate first, keep last in full
+    local first="${parts[0]}"
+    local last="${parts[$((len-1))]}"
+
+    # Truncate first component if too long
+    if [ ${#first} -gt $max_first_len ]; then
+        first="${first:0:$max_first_len}"
+    fi
+
+    echo "${first}/…/${last}"
 }
 
 # Helper function to create visual gauge with color
@@ -141,9 +156,9 @@ abbreviated=$(abbreviate_path "$cwd")
 printf "%s | " "$short_model"
 create_gauge $pct
 
-# Add k8s context if available (with Kubernetes logo)
+# Add k8s context if available
 if [ -n "$k8s_context" ]; then
-    printf " | ☸ %s | %s\n" "$k8s_context" "$abbreviated"
+    printf " | %s | %s\n" "$k8s_context" "$abbreviated"
 else
     printf " | %s\n" "$abbreviated"
 fi

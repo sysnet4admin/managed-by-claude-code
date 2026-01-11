@@ -1,7 +1,8 @@
 {
   "statusLine": {
     "type": "command",
-    "command": "/bin/bash ~/.claude/statusline-command.sh"
+    "command": "/bin/bash ~/.claude/statusline-command.sh",
+    "padding": 0
   },
   "spinnerTipsEnabled": true,
   "attribution": {
