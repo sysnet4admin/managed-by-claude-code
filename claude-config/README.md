@@ -1,40 +1,47 @@
 # Claude Code Config
 
-여러 노트북에서 동일한 Claude Code 글로벌 설정을 사용하기 위한 설정 파일입니다.
+Global configuration files for consistent Claude Code settings across multiple machines.
 
-## 구조
+여러 머신에서 동일한 Claude Code 글로벌 설정을 사용하기 위한 설정 파일입니다.
+
+## Structure / 구조
 
 ```
 claude-config/
 ├── .claude/
-│   ├── settings.json         # 글로벌 설정 (statusline, attribution 등)
-│   ├── statusline-command.sh # 커스텀 statusline
-│   └── commands/             # 슬래시 명령어
-│       ├── h.md              # /h - Haiku 모델
-│       ├── o.md              # /o - Opus 모델
-│       └── s.md              # /s - Sonnet 모델
-├── install.sh                # 설치 스크립트
+│   ├── settings.json         # Global settings / 글로벌 설정
+│   ├── statusline-command.sh # Custom statusline / 커스텀 statusline
+│   └── commands/             # Slash commands / 슬래시 명령어
+│       ├── h.md              # /h - Haiku model
+│       ├── o.md              # /o - Opus model
+│       └── s.md              # /s - Sonnet model
+├── install.sh                # Installation script / 설치 스크립트
 └── README.md
 ```
 
-## 설치
+## Installation / 설치
 
 ```bash
 cd claude-config
 ./install.sh
 ```
 
-설치 스크립트는 `~/.claude/`에 symlink를 생성합니다. 기존 파일이 있으면 `.backup`으로 백업됩니다.
+Creates symlinks in `~/.claude/`. Existing files are backed up as `.backup`.
 
-## Statusline 기능
+`~/.claude/`에 symlink를 생성합니다. 기존 파일이 있으면 `.backup`으로 백업됩니다.
 
-- 모델명 표시 (Opus 4.5, Sonnet 4.5 등)
-- 컨텍스트 사용량 게이지 (색상: 초록 <50%, 노랑 50-70%, 빨강 ≥70%)
-- Kubernetes 컨텍스트 표시 (☸ 아이콘)
-- 현재 경로 (축약형)
+## Statusline Features / Statusline 기능
 
-예시: `Opus 4.5 | ▓▓▓░░░░░░░ | ☸ my-cluster | project/.../src`
+- Model name (Opus 4.5, Sonnet 4.5, etc.) / 모델명 표시
+- Context usage gauge (green <50%, yellow 50-70%, red ≥70%) / 컨텍스트 사용량 게이지
+- API usage (5-hour utilization + time until reset, 60s cache) / API 사용량 (5시간 사용률 + 리셋까지 남은 시간)
+- Kubernetes context (if available) / Kubernetes 컨텍스트 (있는 경우)
+- Current path (abbreviated) / 현재 경로 (축약형)
 
-## 설정 변경 후
+Example / 예시: `Opus 4.5 | ▓▓▓░░░░░░░ | 42% (Rst:3h24m) | my-cluster | project/.../src`
+
+## After Changes / 설정 변경 후
+
+Restart Claude Code to apply configuration changes.
 
 설정 파일 수정 후 Claude Code를 재시작하면 적용됩니다.
