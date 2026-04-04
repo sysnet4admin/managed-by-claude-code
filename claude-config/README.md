@@ -34,7 +34,7 @@ Creates symlinks in `~/.claude/`. Existing files are backed up as `.backup`.
 
 - Model name (Opus 4.5, Sonnet 4.5, etc.) / 모델명 표시
 - Context usage gauge (green <50%, yellow 50-70%, red ≥70%) / 컨텍스트 사용량 게이지
-- API usage (5-hour utilization + time until reset, 60s cache) / API 사용량 (5시간 사용률 + 리셋까지 남은 시간)
+- API usage (5-hour utilization + time until reset, from stdin JSON) / API 사용량 (5시간 사용률 + 리셋까지 남은 시간, stdin JSON 사용)
 - Kubernetes context (if available) / Kubernetes 컨텍스트 (있는 경우)
 - Current path (abbreviated) / 현재 경로 (축약형)
 

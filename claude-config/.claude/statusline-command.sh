@@ -6,121 +6,12 @@
 # Read JSON input from stdin
 input=$(cat)
 
-# Cache file for usage limits (to avoid hitting API too frequently)
-CACHE_FILE="/tmp/claude-usage-cache.json"
-CACHE_TTL=60  # Cache for 60 seconds
-
-# Get OAuth token from macOS Keychain
-get_oauth_token() {
-    local creds
-    creds=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null)
-    if [ -z "$creds" ]; then
-        echo ""
-        return
-    fi
-    echo "$creds" | jq -r '.claudeAiOauth.accessToken // empty' 2>/dev/null
-}
-
-# Calculate time remaining from ISO timestamp
-calc_time_remaining() {
-    local reset_time=$1
-    if [ -z "$reset_time" ] || [ "$reset_time" = "null" ]; then
-        echo ""
-        return
-    fi
-
-    # Parse ISO 8601 timestamp (handles +00:00 timezone)
-    # Convert to epoch using Python for reliable parsing
-    local reset_epoch
-    reset_epoch=$(python3 -c "
-from datetime import datetime
-import sys
-try:
-    dt = datetime.fromisoformat('$reset_time'.replace('+00:00', '+0000'))
-    print(int(dt.timestamp()))
-except:
-    print(0)
-" 2>/dev/null)
-
-    if [ -z "$reset_epoch" ] || [ "$reset_epoch" = "0" ]; then
-        echo ""
-        return
-    fi
-
-    local now_epoch
-    now_epoch=$(date "+%s")
-    local diff=$((reset_epoch - now_epoch))
-
-    if [ $diff -le 0 ]; then
-        echo "now"
-        return
-    fi
-
-    local hours=$((diff / 3600))
-    local mins=$(((diff % 3600) / 60))
-
-    if [ $hours -gt 0 ]; then
-        printf "%dh%dm" $hours $mins
-    else
-        printf "%dm" $mins
-    fi
-}
-
-# Fetch usage limits from API (with caching)
-get_usage_limits() {
-    local now_epoch
-    now_epoch=$(date "+%s")
-
-    # Check cache
-    if [ -f "$CACHE_FILE" ]; then
-        local cache_time
-        cache_time=$(jq -r '.cached_at // 0' "$CACHE_FILE" 2>/dev/null)
-        local age=$((now_epoch - cache_time))
-
-        if [ $age -lt $CACHE_TTL ]; then
-            # Use cached data
-            cat "$CACHE_FILE"
-            return
-        fi
-    fi
-
-    # Get token
-    local token
-    token=$(get_oauth_token)
-    if [ -z "$token" ]; then
-        echo '{"error": "no_token"}'
-        return
-    fi
-
-    # Fetch from API
-    local response
-    response=$(curl -s --max-time 2 \
-        -H "Accept: application/json" \
-        -H "Content-Type: application/json" \
-        -H "Authorization: Bearer $token" \
-        -H "anthropic-beta: oauth-2025-04-20" \
-        -H "User-Agent: claude-code/2.0.31" \
-        "https://api.anthropic.com/api/oauth/usage" 2>/dev/null)
-
-    if [ -z "$response" ]; then
-        echo '{"error": "fetch_failed"}'
-        return
-    fi
-
-    # Add timestamp and cache
-    echo "$response" | jq --arg ts "$now_epoch" '. + {cached_at: ($ts | tonumber)}' > "$CACHE_FILE" 2>/dev/null
-    cat "$CACHE_FILE" 2>/dev/null || echo "$response"
-}
-
-# Format usage limits for display
+# Format usage limits from stdin JSON (no external API calls needed)
 format_usage_limits() {
-    local usage_data=$1
+    local input=$1
 
     local five_hour_pct
-    local five_hour_reset
-
-    five_hour_pct=$(echo "$usage_data" | jq -r '.five_hour.utilization // empty' 2>/dev/null)
-    five_hour_reset=$(echo "$usage_data" | jq -r '.five_hour.resets_at // empty' 2>/dev/null)
+    five_hour_pct=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty' 2>/dev/null)
 
     if [ -z "$five_hour_pct" ]; then
         echo ""
@@ -137,9 +28,23 @@ format_usage_limits() {
         five_color="\033[31m"  # Red
     fi
 
-    local five_remaining=$(calc_time_remaining "$five_hour_reset")
-    if [ -n "$five_remaining" ]; then
-        echo "${five_color}${five_int}%\033[0m (Rst:${five_remaining})"
+    local resets_at
+    resets_at=$(echo "$input" | jq -r '.rate_limits.five_hour.resets_at // empty' 2>/dev/null)
+
+    if [ -n "$resets_at" ] && [ "$resets_at" != "null" ]; then
+        local now_epoch
+        now_epoch=$(date "+%s")
+        local reset_secs=$((resets_at - now_epoch))
+        if [ $reset_secs -le 0 ]; then reset_secs=0; fi
+        local hours=$((reset_secs / 3600))
+        local mins=$(((reset_secs % 3600) / 60))
+        local remaining
+        if [ $hours -gt 0 ]; then
+            remaining=$(printf "%dh%dm" $hours $mins)
+        else
+            remaining=$(printf "%dm" $mins)
+        fi
+        echo "${five_color}${five_int}%\033[0m (Rst:${remaining})"
     else
         echo "${five_color}${five_int}%\033[0m"
     fi
@@ -272,15 +177,9 @@ get_k8s_context() {
 model=$(echo "$input" | jq -r '.model.display_name // "Unknown"')
 cwd=$(echo "$input" | jq -r '.workspace.current_dir // .cwd')
 
-# Calculate context usage percentage
-usage=$(echo "$input" | jq '.context_window.current_usage')
-if [ "$usage" != "null" ]; then
-    current=$(echo "$usage" | jq '.input_tokens + .cache_creation_input_tokens + .cache_read_input_tokens')
-    size=$(echo "$input" | jq '.context_window.context_window_size')
-    pct=$((current * 100 / size))
-else
-    pct=0
-fi
+# Context usage percentage (directly from Claude Code)
+pct=$(echo "$input" | jq -r '.context_window.used_percentage // 0')
+pct=${pct%.*}  # Remove decimal part
 
 # Shorten model name
 short_model=$(shorten_model_name "$model")
@@ -291,9 +190,8 @@ k8s_context=$(get_k8s_context)
 # Build status line
 abbreviated=$(abbreviate_path "$cwd")
 
-# Get usage limits
-usage_data=$(get_usage_limits)
-usage_display=$(format_usage_limits "$usage_data")
+# Get usage limits from stdin JSON
+usage_display=$(format_usage_limits "$input")
 
 # Output the result with colored gauge
 printf "%s | " "$short_model"
