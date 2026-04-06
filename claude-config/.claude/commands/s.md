@@ -1,6 +1,6 @@
 ---
-description: Balanced tasks with Sonnet 4.5
-model: claude-sonnet-4-5-20250929
+description: Balanced tasks with Sonnet (latest)
+model: sonnet
 ---
 
 $ARGUMENTS

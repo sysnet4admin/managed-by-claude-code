@@ -6,48 +6,74 @@
 # Read JSON input from stdin
 input=$(cat)
 
-# Format usage limits from stdin JSON (no external API calls needed)
-format_usage_limits() {
-    local input=$1
+# Colorize percentage value
+colorize_pct() {
+    local pct_int=$1
+    local color
+    if [ "$pct_int" -lt 50 ]; then
+        color="\033[32m"  # Green
+    elif [ "$pct_int" -lt 80 ]; then
+        color="\033[33m"  # Yellow
+    else
+        color="\033[31m"  # Red
+    fi
+    echo "$color"
+}
 
-    local five_hour_pct
-    five_hour_pct=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty' 2>/dev/null)
-
-    if [ -z "$five_hour_pct" ]; then
+# Format time remaining from epoch timestamp
+format_remaining() {
+    local resets_at=$1
+    if [ -z "$resets_at" ] || [ "$resets_at" = "null" ]; then
         echo ""
         return
     fi
-
-    local five_int=${five_hour_pct%.*}
-    local five_color
-    if [ "$five_int" -lt 50 ]; then
-        five_color="\033[32m"  # Green
-    elif [ "$five_int" -lt 80 ]; then
-        five_color="\033[33m"  # Yellow
+    local now_epoch
+    now_epoch=$(date "+%s")
+    local secs=$((resets_at - now_epoch))
+    if [ $secs -le 0 ]; then secs=0; fi
+    local h=$((secs / 3600))
+    local m=$(((secs % 3600) / 60))
+    if [ $h -gt 0 ]; then
+        printf "%dh%dm" $h $m
     else
-        five_color="\033[31m"  # Red
+        printf "%dm" $m
     fi
+}
 
-    local resets_at
-    resets_at=$(echo "$input" | jq -r '.rate_limits.five_hour.resets_at // empty' 2>/dev/null)
+# Format usage limits from stdin JSON (no external API calls needed)
+format_usage_limits() {
+    local input=$1
+    local result=""
 
-    if [ -n "$resets_at" ] && [ "$resets_at" != "null" ]; then
-        local now_epoch
-        now_epoch=$(date "+%s")
-        local reset_secs=$((resets_at - now_epoch))
-        if [ $reset_secs -le 0 ]; then reset_secs=0; fi
-        local hours=$((reset_secs / 3600))
-        local mins=$(((reset_secs % 3600) / 60))
-        local remaining
-        if [ $hours -gt 0 ]; then
-            remaining=$(printf "%dh%dm" $hours $mins)
+    # 5-hour usage
+    local five_pct
+    five_pct=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty' 2>/dev/null)
+    if [ -n "$five_pct" ]; then
+        local five_int=${five_pct%.*}
+        local five_color
+        five_color=$(colorize_pct "$five_int")
+        local five_reset
+        five_reset=$(echo "$input" | jq -r '.rate_limits.five_hour.resets_at // empty' 2>/dev/null)
+        local five_remaining
+        five_remaining=$(format_remaining "$five_reset")
+        if [ -n "$five_remaining" ]; then
+            result="5h:${five_color}${five_int}%\033[0m(${five_remaining})"
         else
-            remaining=$(printf "%dm" $mins)
+            result="5h:${five_color}${five_int}%\033[0m"
         fi
-        echo "${five_color}${five_int}%\033[0m (Rst:${remaining})"
-    else
-        echo "${five_color}${five_int}%\033[0m"
     fi
+
+    # 7-day usage (Max subscription only) - no reset time needed
+    local seven_pct
+    seven_pct=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty' 2>/dev/null)
+    if [ -n "$seven_pct" ]; then
+        local seven_int=${seven_pct%.*}
+        local seven_color
+        seven_color=$(colorize_pct "$seven_int")
+        result="${result} 7d:${seven_color}${seven_int}%\033[0m"
+    fi
+
+    echo "$result"
 }
 
 # Helper function to abbreviate path
