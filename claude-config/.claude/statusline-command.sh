@@ -40,6 +40,27 @@ format_remaining() {
     fi
 }
 
+# Format days+hours remaining from epoch timestamp (for 7d)
+format_remaining_dh() {
+    local resets_at=$1
+    if [ -z "$resets_at" ] || [ "$resets_at" = "null" ]; then
+        echo ""
+        return
+    fi
+    local now_epoch
+    now_epoch=$(date "+%s")
+    local secs=$((resets_at - now_epoch))
+    if [ $secs -le 0 ]; then secs=0; fi
+    local d=$((secs / 86400))
+    local h=$(((secs % 86400) / 3600))
+    if [ $d -gt 0 ]; then
+        printf "%dd%dh" $d $h
+    else
+        local m=$(((secs % 3600) / 60))
+        printf "%dh%dm" $h $m
+    fi
+}
+
 # Format usage limits from stdin JSON (no external API calls needed)
 format_usage_limits() {
     local input=$1
@@ -63,14 +84,22 @@ format_usage_limits() {
         fi
     fi
 
-    # 7-day usage (Max subscription only) - no reset time needed
+    # 7-day usage (Max subscription only)
     local seven_pct
     seven_pct=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty' 2>/dev/null)
     if [ -n "$seven_pct" ]; then
         local seven_int=${seven_pct%.*}
         local seven_color
         seven_color=$(colorize_pct "$seven_int")
-        result="${result} 7d:${seven_color}${seven_int}%\033[0m"
+        local seven_reset
+        seven_reset=$(echo "$input" | jq -r '.rate_limits.seven_day.resets_at // empty' 2>/dev/null)
+        local seven_remaining
+        seven_remaining=$(format_remaining_dh "$seven_reset")
+        if [ -n "$seven_remaining" ]; then
+            result="${result} 7d:${seven_color}${seven_int}%\033[0m(${seven_remaining})"
+        else
+            result="${result} 7d:${seven_color}${seven_int}%\033[0m"
+        fi
     fi
 
     echo "$result"
