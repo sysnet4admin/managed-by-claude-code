@@ -1,37 +1,84 @@
 # Claude Code session management
 # Usage: source this file in ~/.zshrc
-#   source ~/11.Github/managed-by-claude-code/claude-config/sessions.zsh
+#   source ~/11.Github/managed-by-claude-code/claude-config/claude-history.zsh
 
-# JSONL에서 마지막 유효 메시지 미리보기 추출
-_claude_session_preview() {
-  local f="$1"
-  # last-prompt 타입 우선 (마지막 사용자 입력)
-  local preview
-  preview=$(grep '"type":"last-prompt"' "$f" 2>/dev/null | tail -1 | python3 -c "
-import sys, json
-d = json.loads(sys.stdin.read())
-prompt = d.get('lastPrompt', '')
-if prompt and not prompt.startswith('<'):
-    print(prompt.split('\n')[0][:80])
-" 2>/dev/null)
+# 모든 파일을 단일 python3 프로세스로 처리 (캐시 활용)
+# 캐시: ~/.claude/.claude-history-cache.json
+# 출력: filepath\tcwd\tpreview\n
+_claude_extract_all() {
+  python3 - "$@" <<'PYEOF'
+import sys, json, os
 
-  # fallback: 첫 user 메시지
-  if [[ -z "$preview" ]]; then
-    preview=$(grep -m 1 '"type":"user"' "$f" 2>/dev/null | python3 -c "
-import sys, json
-d = json.loads(sys.stdin.read())
-content = d['message']['content']
-if isinstance(content, str) and not content.startswith('<'):
-    print(content.split('\n')[0][:80])
-" 2>/dev/null)
-  fi
-  echo "$preview"
-}
+CACHE_FILE = os.path.expanduser('~/.claude/.claude-history-cache.json')
 
-# JSONL에서 cwd 추출
-_claude_session_cwd() {
-  grep -m 1 '"type":"user"' "$1" 2>/dev/null \
-    | python3 -c "import sys,json; d=json.loads(sys.stdin.read()); print(d.get('cwd',''))" 2>/dev/null
+def extract(filepath):
+    size = os.path.getsize(filepath)
+    cwd = ''
+    first_preview = ''
+
+    with open(filepath, 'r', errors='ignore') as f:
+        for i, line in enumerate(f):
+            if i > 50:
+                break
+            try:
+                d = json.loads(line.strip())
+                if d.get('type') == 'user' and not cwd:
+                    cwd = d.get('cwd', '')
+                    content = d.get('message', {}).get('content', '')
+                    if isinstance(content, str) and not content.startswith('<'):
+                        first_preview = content.split('\n')[0][:80]
+            except:
+                pass
+
+    last_prompt = ''
+    with open(filepath, 'rb') as f:
+        f.seek(max(0, size - 20480))
+        tail = f.read().decode('utf-8', errors='ignore')
+    for line in reversed(tail.split('\n')):
+        try:
+            d = json.loads(line.strip())
+            if d.get('type') == 'last-prompt':
+                p = d.get('lastPrompt', '')
+                if p and not p.startswith('<'):
+                    last_prompt = p.split('\n')[0][:80]
+                    break
+        except:
+            pass
+
+    return cwd, last_prompt or first_preview
+
+def load_cache():
+    try:
+        with open(CACHE_FILE) as f:
+            return json.load(f)
+    except:
+        return {}
+
+def save_cache(cache):
+    try:
+        with open(CACHE_FILE, 'w') as f:
+            json.dump(cache, f)
+    except:
+        pass
+
+cache = load_cache()
+new_cache = {}
+
+for f in sys.argv[1:]:
+    try:
+        mtime = os.path.getmtime(f)
+        entry = cache.get(f)
+        if entry and entry.get('mtime') == mtime:
+            cwd, preview = entry['cwd'], entry['preview']
+        else:
+            cwd, preview = extract(f)
+        new_cache[f] = {'mtime': mtime, 'cwd': cwd, 'preview': preview}
+        print(f'{f}\t{cwd}\t{preview}', flush=True)
+    except:
+        print(f'{f}\t\t', flush=True)
+
+save_cache(new_cache)
+PYEOF
 }
 
 # claude-continue: 현재 디렉토리 최신 세션 재개 (claude -c 래퍼)
@@ -41,25 +88,30 @@ claude-continue() {
 
 # claude-history: fzf TUI로 전체 세션 목록 표시 및 선택 재개
 claude-history() {
-  local entries=()
   local current_dir="$(pwd)"
 
-  # 최근 100개 세션 수집
+  # 최근 100개 세션 파일 목록
+  local files=()
   while IFS= read -r f; do
-    [[ -f "$f" ]] || continue
-    local mtime=$(stat -f '%Sm' -t '%Y-%m-%d %H:%M' "$f")
-    local session_id=$(basename "$f" .jsonl)
-    local cwd=$(_claude_session_cwd "$f")
-    local preview=$(_claude_session_preview "$f")
-    local short_cwd="${cwd/#$HOME/~}"
+    [[ -f "$f" ]] && files+=("$f")
+  done < <(find "$HOME/.claude/projects" -maxdepth 2 -name "*.jsonl" ! -path "*/subagents/*" \
+    -exec stat -f '%m %N' {} + 2>/dev/null | sort -rn | awk '{print $2}' | head -100)
 
-    # 현재 디렉토리 세션 표시
+  if [[ ${#files[@]} -eq 0 ]]; then
+    echo "[claude-history] 세션 없음"
+    return
+  fi
+
+  # 단일 python3로 전체 파일 처리
+  local entries=()
+  while IFS=$'\t' read -r filepath cwd preview; do
+    local session_id=$(basename "$filepath" .jsonl)
+    local mtime=$(stat -f '%Sm' -t '%Y-%m-%d %H:%M' "$filepath")
+    local short_cwd="${cwd/#$HOME/~}"
     local marker="  "
     [[ "$cwd" == "$current_dir" ]] && marker="* "
-
     entries+=("${session_id}	${cwd}	${marker}${mtime}  ${short_cwd}: ${preview:-(미리보기 없음)}")
-  done < <(find "$HOME/.claude/projects" -maxdepth 2 -name "*.jsonl" ! -path "*/subagents/*" \
-    -exec stat -f '%m %N' {} \; 2>/dev/null | sort -rn | awk '{print $2}' | head -100)
+  done < <(_claude_extract_all "${files[@]}")
 
   if [[ ${#entries[@]} -eq 0 ]]; then
     echo "[claude-history] 세션 없음"
@@ -91,7 +143,7 @@ claude-history() {
       ((i++))
     done
     echo ""
-    printf "번호 선택 (ESC/q: 취소): "
+    printf "번호 선택 (q: 취소): "
     read -r pick
     [[ -z "$pick" || "$pick" == "q" ]] && return
     if ! [[ "$pick" =~ ^[0-9]+$ ]] || (( pick < 1 || pick > ${#entries[@]} )); then
