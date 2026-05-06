@@ -15,7 +15,7 @@ claude-config/
 │       ├── h.md              # /h - Haiku model
 │       ├── o.md              # /o - Opus model
 │       └── s.md              # /s - Sonnet model
-├── sessions.zsh              # Session management functions / 세션 관리 함수
+├── claude-history.zsh              # Session management functions / 세션 관리 함수
 ├── install.sh                # Installation script / 설치 스크립트
 └── README.md
 ```
@@ -43,9 +43,9 @@ Example / 예시: `Opus 4.5 | ▓▓▓░░░░░░░ | 42% (Rst:3h24m) |
 
 ## Session Management / 세션 관리
 
-`sessions.zsh` provides shell functions for resuming Claude Code sessions after unexpected termination.
+`claude-history.zsh` provides shell functions for resuming Claude Code sessions after unexpected termination.
 
-`sessions.zsh`는 갑작스러운 종료 후 세션을 재개할 수 있는 zsh 함수를 제공합니다.
+`claude-history.zsh`는 갑작스러운 종료 후 세션을 재개할 수 있는 zsh 함수를 제공합니다.
 
 `install.sh` automatically adds the source line to `~/.zshrc`.
 
