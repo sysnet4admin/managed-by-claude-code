@@ -10,6 +10,7 @@ managed-by-claude-code/
 │   └── settings.json             # 저장소 설정 (attribution 등)
 ├── claude-config/                # 글로벌 Claude Code 설정 (symlink용)
 │   ├── .claude/                  # 설정 파일들
+│   ├── sessions.zsh              # 세션 관리 함수
 │   ├── install.sh                # 설치 스크립트
 │   └── README.md                 # 사용법
 ├── macOS/
@@ -31,6 +32,7 @@ managed-by-claude-code/
 - 커스텀 statusline (모델명, 사용량 게이지, k8s 컨텍스트, 경로)
 - 슬래시 명령어 (`/o`, `/s`, `/h` - 모델 전환)
 - Attribution 설정 (글로벌: 비활성화)
+- 세션 관리 (`claude-continue`, `claude-sessions`) — 터미널 강제 종료 후에도 이전 세션 즉시 재개
 
 #### [저장소별 설정](.claude/)
 이 저장소 전용 Claude Code 설정
@@ -162,6 +164,12 @@ source ./stop-tunnel.sh
 - 각 도구의 README를 먼저 읽어보세요
 
 ## 📝 변경 이력
+
+### 2026-05-06
+- Claude Code 세션 관리 함수 추가 (`sessions.zsh`)
+- `claude-continue`: picker 없이 현재 디렉토리의 마지막 세션 즉시 재개
+- `claude-sessions`: 세션 목록 + 첫 메시지 미리보기, 번호로 재개
+- `install.sh`에 `~/.zshrc` 자동 등록 추가
 
 ### 2025-11-20
 - Jump Host Proxy 추가
