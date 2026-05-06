@@ -42,7 +42,7 @@ for cmd in "$DOTFILES_DIR/commands"/*.md; do
     echo "Linked: commands/$filename"
 done
 
-# Add claude-session.zsh source line to ~/.zshrc
+# Add sessions.zsh source line to ~/.zshrc (provides claude-history)
 ZSHRC="$HOME/.zshrc"
 SOURCE_LINE="source $SCRIPT_DIR/sessions.zsh"
 if ! grep -qF "$SOURCE_LINE" "$ZSHRC" 2>/dev/null; then

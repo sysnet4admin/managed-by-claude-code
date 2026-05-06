@@ -51,9 +51,7 @@ Example / 예시: `Opus 4.5 | ▓▓▓░░░░░░░ | 42% (Rst:3h24m) |
 
 | Command | Description |
 |---------|-------------|
-| `claude-continue` | Resume the latest session in the current directory / 현재 디렉토리의 최근 세션 재개 |
-| `claude-sessions` | List sessions with preview of first message / 세션 목록 + 첫 메시지 미리보기 |
-| `claude-sessions <n>` | Resume session number n / n번 세션 재개 |
+| `claude-history` | Browse all sessions via fzf TUI and resume selected / 전체 세션을 fzf TUI로 탐색 후 선택 재개 |
 
 ## After Changes / 설정 변경 후
 
