@@ -15,6 +15,7 @@ claude-config/
 │       ├── h.md              # /h - Haiku model
 │       ├── o.md              # /o - Opus model
 │       └── s.md              # /s - Sonnet model
+├── sessions.zsh              # Session management functions / 세션 관리 함수
 ├── install.sh                # Installation script / 설치 스크립트
 └── README.md
 ```
@@ -39,6 +40,20 @@ Creates symlinks in `~/.claude/`. Existing files are backed up as `.backup`.
 - Current path (abbreviated) / 현재 경로 (축약형)
 
 Example / 예시: `Opus 4.5 | ▓▓▓░░░░░░░ | 42% (Rst:3h24m) | my-cluster | project/.../src`
+
+## Session Management / 세션 관리
+
+`sessions.zsh` provides shell functions for resuming Claude Code sessions after unexpected termination.
+
+`sessions.zsh`는 갑작스러운 종료 후 세션을 재개할 수 있는 zsh 함수를 제공합니다.
+
+`install.sh` automatically adds the source line to `~/.zshrc`.
+
+| Command | Description |
+|---------|-------------|
+| `claude-continue` | Resume the latest session in the current directory / 현재 디렉토리의 최근 세션 재개 |
+| `claude-sessions` | List sessions with preview of first message / 세션 목록 + 첫 메시지 미리보기 |
+| `claude-sessions <n>` | Resume session number n / n번 세션 재개 |
 
 ## After Changes / 설정 변경 후
 

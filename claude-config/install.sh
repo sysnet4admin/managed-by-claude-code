@@ -42,6 +42,19 @@ for cmd in "$DOTFILES_DIR/commands"/*.md; do
     echo "Linked: commands/$filename"
 done
 
+# Add claude-session.zsh source line to ~/.zshrc
+ZSHRC="$HOME/.zshrc"
+SOURCE_LINE="source $SCRIPT_DIR/sessions.zsh"
+if ! grep -qF "$SOURCE_LINE" "$ZSHRC" 2>/dev/null; then
+    echo "" >> "$ZSHRC"
+    echo "# Claude Code session management" >> "$ZSHRC"
+    echo "$SOURCE_LINE" >> "$ZSHRC"
+    echo "Added to ~/.zshrc: $SOURCE_LINE"
+else
+    echo "Already in ~/.zshrc: $SOURCE_LINE"
+fi
+
 echo ""
 echo "Installation complete!"
 echo "Restart Claude Code to apply changes."
+echo "Run 'source ~/.zshrc' to load session management functions."
