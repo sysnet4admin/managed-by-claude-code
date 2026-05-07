@@ -86,9 +86,48 @@ claude-continue() {
   claude --continue "$@"
 }
 
+# 마지막 선택 모드 저장/로드
+_claude_mode_file="$HOME/.claude/.claude-history-mode"
+
+_claude_save_mode() {
+  echo "$1" > "$_claude_mode_file" 2>/dev/null
+}
+
+_claude_load_mode() {
+  cat "$_claude_mode_file" 2>/dev/null || echo "default"
+}
+
+# 세션 재개 실행 (명령어 모드별 분기)
+# CLAUDE_HISTORY_CMD 환경변수로 기본 명령어 설정 가능 (모드 저장보다 우선)
+# 예: export CLAUDE_HISTORY_CMD="claude-api"
+#     export CLAUDE_HISTORY_CMD="claude --dangerously-skip-permissions"
+_claude_resume() {
+  local session_id="$1"
+  local cwd="$2"
+  local mode="${3:-default}"  # default | api | dangerous
+  local current_dir="$(pwd)"
+
+  if [[ -n "$cwd" && -d "$cwd" && "$cwd" != "$current_dir" ]]; then
+    echo "cd $cwd"
+    cd "$cwd"
+  fi
+
+  _claude_save_mode "$mode"
+
+  case "$mode" in
+    api)           claude-api --resume "$session_id" ;;
+    dangerous)     claude --dangerously-skip-permissions --resume "$session_id" ;;
+    api-dangerous) claude-api --dangerously-skip-permissions --resume "$session_id" ;;
+    *)             ${=CLAUDE_HISTORY_CMD:-claude} --resume "$session_id" ;;
+  esac
+}
+
 # claude-history: fzf TUI로 전체 세션 목록 표시 및 선택 재개
+# 환경변수: CLAUDE_HISTORY_CMD (기본: claude)
+# fzf 키:  Enter=기본  Ctrl-A=claude-api  Ctrl-D=--dangerously-skip-permissions
 claude-history() {
   local current_dir="$(pwd)"
+  local default_cmd="${CLAUDE_HISTORY_CMD:-claude}"
 
   # 최근 100개 세션 파일 목록
   local files=()
@@ -118,21 +157,54 @@ claude-history() {
     return
   fi
 
-  local session_id cwd selected
+  # CLAUDE_HISTORY_CMD 없으면 마지막 선택 모드 사용
+  local saved_mode
+  if [[ -n "$CLAUDE_HISTORY_CMD" ]]; then
+    saved_mode="default"
+  else
+    saved_mode=$(_claude_load_mode)
+  fi
+
+  local session_id cwd mode="$saved_mode"
+
+  # 헤더에 현재 기본 모드 표시
+  local enter_label
+  case "$saved_mode" in
+    api)           enter_label="claude-api" ;;
+    dangerous)     enter_label="skip-permissions" ;;
+    api-dangerous) enter_label="api+skip" ;;
+    *)             enter_label="$default_cmd" ;;
+  esac
 
   if command -v fzf &>/dev/null; then
-    # fzf TUI
-    selected=$(printf '%s\n' "${entries[@]}" \
+    # fzf TUI (--expect로 키 구분)
+    local result
+    result=$(printf '%s\n' "${entries[@]}" \
       | fzf \
         --delimiter=$'\t' \
         --with-nth=3 \
         --height=60% \
         --reverse \
         --prompt="claude> " \
-        --header="* 현재 디렉토리 | Enter: 재개  ESC: 취소")
+        --header="* 현재 디렉토리 | Enter: ${enter_label}  ^1: claude  ^2: claude-api  ^3: skip-perm  ^4: api+skip  ESC: 취소" \
+        --expect=ctrl-1,ctrl-2,ctrl-3,ctrl-4)
+
+    [[ -z "$result" ]] && return
+
+    local key selected
+    key=$(echo "$result" | head -1)
+    selected=$(echo "$result" | tail -1)
     [[ -z "$selected" ]] && return
+
     session_id=$(echo "$selected" | cut -f1)
     cwd=$(echo "$selected" | cut -f2)
+
+    case "$key" in
+      ctrl-1) mode="default" ;;
+      ctrl-2) mode="api" ;;
+      ctrl-3) mode="dangerous" ;;
+      ctrl-4) mode="api-dangerous" ;;
+    esac
   else
     # fallback: 번호 목록 (fzf 미설치)
     echo "[claude-history] TUI를 사용하려면 fzf를 설치하세요: brew install fzf"
@@ -155,10 +227,5 @@ claude-history() {
     cwd=$(echo "$target" | cut -f2)
   fi
 
-  if [[ -n "$cwd" && -d "$cwd" && "$cwd" != "$current_dir" ]]; then
-    echo "cd $cwd"
-    cd "$cwd"
-  fi
-
-  claude --resume "$session_id"
+  _claude_resume "$session_id" "$cwd" "$mode"
 }
