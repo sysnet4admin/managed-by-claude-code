@@ -43,15 +43,35 @@ Example / 예시: `Opus 4.5 | ▓▓▓░░░░░░░ | 42% (Rst:3h24m) |
 
 ## Session Management / 세션 관리
 
-`claude-history.zsh` provides shell functions for resuming Claude Code sessions after unexpected termination.
+`claude-history.zsh` provides a shell function to browse all Claude Code sessions and resume the right one quickly.
 
-`claude-history.zsh`는 갑작스러운 종료 후 세션을 재개할 수 있는 zsh 함수를 제공합니다.
+`claude-history.zsh`는 전체 Claude Code 세션을 탐색하고 원하는 작업으로 빠르게 돌아갈 수 있는 zsh 함수를 제공합니다.
 
-`install.sh` automatically adds the source line to `~/.zshrc`.
+`install.sh` automatically adds the source line to `~/.zshrc`. Requires `fzf` (`brew install fzf`).
 
-| Command | Description |
-|---------|-------------|
-| `claude-history` | Browse all sessions via fzf TUI and resume selected / 전체 세션을 fzf TUI로 탐색 후 선택 재개 |
+### `claude-history`
+
+Opens an fzf TUI showing recent sessions with the **last input** as a preview. Selecting a session automatically `cd`s to the original directory before resuming.
+
+fzf TUI로 최근 세션 목록을 표시하며 각 세션의 **마지막 입력 내용**을 미리보기로 보여줍니다. 선택 시 원래 디렉토리로 자동 이동 후 재개합니다.
+
+| Key | Command |
+|-----|---------|
+| `Enter` | Last saved mode (persisted across runs) |
+| `Ctrl-O` | `claude` |
+| `Ctrl-A` | `claude-api` |
+| `Ctrl-D` | `claude --dangerously-skip-permissions` |
+| `Ctrl-X` | `claude-api --dangerously-skip-permissions` |
+
+**Default command override / 기본 명령어 변경:**
+
+```zsh
+export CLAUDE_HISTORY_CMD="claude-api"
+# or
+export CLAUDE_HISTORY_CMD="claude --dangerously-skip-permissions"
+```
+
+**Performance:** ~0.07s first run, ~0.04s subsequent runs (mtime-based cache at `~/.claude/.claude-history-cache.json`)
 
 ## After Changes / 설정 변경 후
 

@@ -165,6 +165,13 @@ source ./stop-tunnel.sh
 
 ## 📝 변경 이력
 
+### 2026-05-07
+- `claude-history` 기능 강화
+- Ctrl-O/A/D/X 키바인딩으로 4가지 실행 모드 선택 (claude / claude-api / skip-permissions / api+skip)
+- 마지막 선택 모드 저장 (`~/.claude/.claude-history-mode`)
+- `CLAUDE_HISTORY_CMD` 환경변수로 기본 명령어 설정 가능
+- mtime 캐시 적용으로 재실행 속도 0.04초
+
 ### 2026-05-06
 - Claude Code 세션 관리 함수 추가 (`claude-history.zsh`)
 - `claude-history`: fzf TUI로 전체 작업 히스토리 탐색 후 선택 재개, 마지막 입력 내용 미리보기
