@@ -186,8 +186,8 @@ claude-history() {
         --height=60% \
         --reverse \
         --prompt="claude> " \
-        --header="* 현재 디렉토리 | Enter: ${enter_label}  ^1: claude  ^2: claude-api  ^3: skip-perm  ^4: api+skip  ESC: 취소" \
-        --expect=ctrl-1,ctrl-2,ctrl-3,ctrl-4)
+        --header="* 현재 디렉토리 | Enter: ${enter_label}  ^O: claude  ^A: api  ^D: skip-perm  ^X: api+skip  ESC: 취소" \
+        --expect=ctrl-o,ctrl-a,ctrl-d,ctrl-x)
 
     [[ -z "$result" ]] && return
 
@@ -200,10 +200,10 @@ claude-history() {
     cwd=$(echo "$selected" | cut -f2)
 
     case "$key" in
-      ctrl-1) mode="default" ;;
-      ctrl-2) mode="api" ;;
-      ctrl-3) mode="dangerous" ;;
-      ctrl-4) mode="api-dangerous" ;;
+      ctrl-o) mode="default" ;;
+      ctrl-a) mode="api" ;;
+      ctrl-d) mode="dangerous" ;;
+      ctrl-x) mode="api-dangerous" ;;
     esac
   else
     # fallback: 번호 목록 (fzf 미설치)
