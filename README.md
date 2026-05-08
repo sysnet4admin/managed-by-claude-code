@@ -32,7 +32,7 @@ managed-by-claude-code/
 - 커스텀 statusline (모델명, 사용량 게이지, k8s 컨텍스트, 경로)
 - 슬래시 명령어 (`/o`, `/s`, `/h` - 모델 전환)
 - Attribution 설정 (글로벌: 비활성화)
-- 세션 관리 (`claude-history`) — 전체 작업 히스토리를 fzf TUI로 탐색 후 선택 재개
+- 세션 관리 → **[cc-deck](https://github.com/sysnet4admin/cc-deck)** 으로 분리
 
 #### [저장소별 설정](.claude/)
 이 저장소 전용 Claude Code 설정
