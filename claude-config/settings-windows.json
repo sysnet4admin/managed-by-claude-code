@@ -1,0 +1,12 @@
+{
+  "statusLine": {
+    "type": "command",
+    "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"%USERPROFILE%\\.claude\\statusline-command.ps1\"",
+    "padding": 0
+  },
+  "spinnerTipsEnabled": true,
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  }
+}

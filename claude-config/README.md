@@ -9,17 +9,22 @@ Global configuration files for consistent Claude Code settings across multiple m
 ```
 claude-config/
 ├── .claude/
-│   ├── settings.json         # Global settings / 글로벌 설정
-│   ├── statusline-command.sh # Custom statusline / 커스텀 statusline
-│   └── commands/             # Slash commands / 슬래시 명령어
-│       ├── h.md              # /h - Haiku model
-│       ├── o.md              # /o - Opus model
-│       └── s.md              # /s - Sonnet model
-├── install.sh                # Installation script / 설치 스크립트
+│   ├── settings.json              # Global settings (Mac/Linux) / 글로벌 설정
+│   ├── statusline-command.sh      # Custom statusline (Mac/Linux) / 커스텀 statusline
+│   ├── statusline-command.ps1     # Custom statusline (Windows) / 커스텀 statusline
+│   └── commands/                  # Slash commands / 슬래시 명령어
+│       ├── h.md                   # /h - Haiku model
+│       ├── o.md                   # /o - Opus model
+│       └── s.md                   # /s - Sonnet model
+├── install.sh                     # Installation script (Mac/Linux) / 설치 스크립트
+├── install.ps1                    # Installation script (Windows) / 설치 스크립트
+├── settings-windows.json          # Settings template (Windows) / 설정 템플릿
 └── README.md
 ```
 
 ## Installation / 설치
+
+### Mac / Linux
 
 ```bash
 cd claude-config
@@ -29,6 +34,19 @@ cd claude-config
 Creates symlinks in `~/.claude/`. Existing files are backed up as `.backup`.
 
 `~/.claude/`에 symlink를 생성합니다. 기존 파일이 있으면 `.backup`으로 백업됩니다.
+
+### Windows
+
+```powershell
+cd claude-config
+.\install.ps1
+```
+
+Copies files to `~\.claude\`. Existing files are backed up as `.backup`.
+
+`~\.claude\`에 파일을 복사합니다. 기존 파일이 있으면 `.backup`으로 백업됩니다.
+
+> **Note:** `settings.json` is auto-generated from `settings-windows.json` with the correct path for your user profile.
 
 ## Statusline Features / Statusline 기능
 
