@@ -23,6 +23,22 @@ fi
 ln -sf "$DOTFILES_DIR/settings.json" "$CLAUDE_DIR/settings.json"
 echo "Linked: settings.json"
 
+# Backup and symlink CLAUDE.md
+if [ -f "$CLAUDE_DIR/CLAUDE.md" ] && [ ! -L "$CLAUDE_DIR/CLAUDE.md" ]; then
+    echo "Backing up existing CLAUDE.md to CLAUDE.md.backup"
+    mv "$CLAUDE_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md.backup"
+fi
+ln -sf "$DOTFILES_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
+echo "Linked: CLAUDE.md"
+
+# Backup and symlink ko-writing-style.md
+if [ -f "$CLAUDE_DIR/ko-writing-style.md" ] && [ ! -L "$CLAUDE_DIR/ko-writing-style.md" ]; then
+    echo "Backing up existing ko-writing-style.md to ko-writing-style.md.backup"
+    mv "$CLAUDE_DIR/ko-writing-style.md" "$CLAUDE_DIR/ko-writing-style.md.backup"
+fi
+ln -sf "$DOTFILES_DIR/ko-writing-style.md" "$CLAUDE_DIR/ko-writing-style.md"
+echo "Linked: ko-writing-style.md"
+
 # Backup and symlink statusline-command.sh
 if [ -f "$CLAUDE_DIR/statusline-command.sh" ] && [ ! -L "$CLAUDE_DIR/statusline-command.sh" ]; then
     echo "Backing up existing statusline-command.sh to statusline-command.sh.backup"
