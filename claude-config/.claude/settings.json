@@ -3,6 +3,29 @@
     "commit": "",
     "pr": ""
   },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "caffeinate -i & echo $! > /tmp/caffeinate-claude.pid",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "kill $(cat /tmp/caffeinate-claude.pid 2>/dev/null) 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  },
   "statusLine": {
     "type": "command",
     "command": "/bin/bash ~/.claude/statusline-command.sh",
