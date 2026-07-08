@@ -104,3 +104,9 @@ playwright-report
 
 # 플러그인 (API 키 포함 가능성 있으면 제외)
 .claude/plugins/
+
+# === 인증정보 (Public 저장소 유출 방지) ===
+# kubeconfig에는 클러스터 토큰/인증서가 들어있어 절대 커밋 금지
+local-k8s/
+kubeconfig
+*.kubeconfig
