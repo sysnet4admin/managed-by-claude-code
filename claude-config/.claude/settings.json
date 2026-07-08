@@ -9,7 +9,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "caffeinate -i & echo $! > /tmp/caffeinate-claude.pid",
+            "command": "case \"$(scutil --get LocalHostName 2>/dev/null)\" in *m4*) caffeinate -i & echo $! > /tmp/caffeinate-claude.pid ;; esac",
             "async": true
           }
         ]
@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "kill $(cat /tmp/caffeinate-claude.pid 2>/dev/null) 2>/dev/null || true"
+            "command": "case \"$(scutil --get LocalHostName 2>/dev/null)\" in *m4*) kill $(cat /tmp/caffeinate-claude.pid 2>/dev/null) 2>/dev/null || true ;; esac"
           }
         ]
       }
