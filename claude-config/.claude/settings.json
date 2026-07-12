@@ -34,5 +34,5 @@
   "spinnerTipsEnabled": true,
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark",
-  "model": "sonnet"
+  "model": "opus"
 }
