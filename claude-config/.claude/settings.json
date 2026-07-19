@@ -33,6 +33,5 @@
   },
   "spinnerTipsEnabled": true,
   "skipDangerousModePermissionPrompt": true,
-  "theme": "dark",
-  "model": "opus"
+  "theme": "dark"
 }
